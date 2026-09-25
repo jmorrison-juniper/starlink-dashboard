@@ -4,7 +4,7 @@ Starlink Stats Dashboard
 A modern GUI for monitoring Starlink terminal statistics in real-time.
 
 Author: MistHelper Project
-License: MIT
+License: CC BY-NC-SA 4.0. See the LICENSE file.
 Target Audience: NOC Engineers monitoring Starlink WAN connectivity
 
 Dependencies:

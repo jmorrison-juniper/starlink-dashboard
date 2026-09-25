@@ -1,0 +1,6 @@
+# Runtime dependencies of the Starlink Enterprise Dashboard.
+# The lower bounds are the versions that the move from MistHelper tested together on 2026-09-25.
+PyQt6>=6.11.0
+grpcio>=1.84.0
+grpcio-tools>=1.84.0
+protobuf>=7.36.2

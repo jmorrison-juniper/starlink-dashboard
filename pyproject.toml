@@ -1,0 +1,15 @@
+# Tool settings for the Starlink Enterprise Dashboard.
+# The dashboard is one script, so this file holds no package metadata.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+# The submodule holds the SpaceX code and the generated protocol modules.
+extend-exclude = ["starlink-api-reference"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "G"]
