@@ -15,23 +15,20 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Lint and test
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
-      - name: Install the test tools
-        run: python -m pip install -r requirements-dev.txt
-      - name: Lint
-        run: python -m ruff check .
-      - name: Check the format
-        run: python -m ruff format --check .
-      - name: Run the tests
-        run: python -m pytest
+  # The shared workflow in misthelper-devtools runs each gate as its own job.
+  # Each job installs requirements-dev.txt. Each check name starts with the job
+  # ID, for example "gates / Ruff (lint)".
+  gates:
+    permissions:
+      contents: read
+    uses: jmorrison-juniper/misthelper-devtools/.github/workflows/reusable-python-quality-gates.yml@efd236ba17b0a7f9258ddac31168773a7af53e96 # main
+    with:
+      python-version: '3.13'
+      cache-dependency-path: requirements-dev.txt
+      timeout-minutes: 10
+      ruff: true
+      ruff-format: true
+      pytest: true
 
   protocol:
     name: Generate the protocol modules

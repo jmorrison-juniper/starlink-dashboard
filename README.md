@@ -90,8 +90,11 @@ The tests read the source of the dashboard. They do not import the dashboard, so
 ```powershell
 python -m pip install -r requirements-dev.txt
 python -m ruff check .
+python -m ruff format --check .
 python -m pytest
 ```
+
+CI runs the same three checks with the shared quality gate workflow of [misthelper-devtools](https://github.com/jmorrison-juniper/misthelper-devtools). Each check is a separate job, for example `gates / Ruff (lint)`.
 
 ## License
 
