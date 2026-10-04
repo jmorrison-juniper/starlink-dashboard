@@ -1,31 +1,113 @@
 """Offline integration tests for the dashboard's Starlink gRPC path."""
 
-import importlib
+import ast
+import logging
 import os
 import sys
+from datetime import UTC, datetime
+from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
 import pytest
 
+MODULE_PATH = Path(__file__).resolve().parents[2] / "starlink_dashboard.py"
+GPS_HELPERS = {"_exact_gps_enabled", "_format_gps_coordinate"}
+DASHBOARD_METHODS = {
+    "_build_starlink_stats_dict",
+    "_collect_status_parts",
+    "_compute_alignment",
+    "_compute_hardware_test",
+    "_compute_is_operational",
+    "_compute_obstruction_status",
+    "_compute_service_status",
+    "_compute_short_terminal_id",
+    "_compute_utc_offset_hours",
+    "_describe_diagnostics",
+    "_dump_diagnostics_alerts",
+    "_dump_diagnostics_alignment",
+    "_dump_diagnostics_debug",
+    "_dump_diagnostics_location",
+    "_dump_diagnostics_main_fields",
+    "_dump_diagnostics_sub_messages",
+    "_fetch_diagnostics_from_terminal",
+    "_load_starlink_proto_modules",
+    "_safe_diag_field",
+    "_status_part_alerts",
+    "_status_part_disablement",
+    "_status_part_location",
+    "_status_part_self_test",
+    "_status_part_stowed",
+    "_status_part_terminal_id",
+    "connect_to_starlink",
+    "format_status_message",
+    "get_starlink_stats",
+}
+DASHBOARD_CONSTANTS = {
+    "_DEFAULT_STARLINK_STATS",
+    "_DISABLEMENT_CODE_MESSAGES",
+    "_HARDWARE_TEST_RESULTS",
+    "_SERVICE_STATUS_CODES",
+    "_STATUS_ALERT_FIELDS",
+}
 
-@pytest.fixture(scope="session")
-def qt_application():
-    """Create the Qt application without opening a display."""
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    from PyQt6.QtWidgets import QApplication
 
-    return QApplication.instance() or QApplication([])
+def load_dashboard_class():
+    """Compile the real data-path methods without importing desktop or network dependencies."""
+    tree = ast.parse(MODULE_PATH.read_text(encoding="utf-8"), filename=str(MODULE_PATH))
+    module_body = []
+    dashboard_node = next(
+        node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "StarlinkDashboard"
+    )
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name)
+            and target.id in {"GPS_PRECISION_DECIMALS", "GPS_EXACT_ENV_VAR", "GPS_EXACT_OPT_IN_VALUES"}
+            for target in node.targets
+        ):
+            module_body.append(node)
+        elif isinstance(node, ast.FunctionDef) and node.name in GPS_HELPERS:
+            module_body.append(node)
+
+    dashboard_node.bases = []
+    dashboard_node.keywords = []
+    dashboard_node.body = [
+        node
+        for node in dashboard_node.body
+        if (isinstance(node, ast.FunctionDef) and node.name in DASHBOARD_METHODS)
+        or (
+            isinstance(node, (ast.Assign, ast.AnnAssign))
+            and any(
+                isinstance(target, ast.Name) and target.id in DASHBOARD_CONSTANTS
+                for target in (node.targets if isinstance(node, ast.Assign) else [node.target])
+            )
+        )
+    ]
+    module_body.append(dashboard_node)
+    namespace: dict[str, Any] = {
+        "__file__": str(MODULE_PATH),
+        "__name__": "starlink_dashboard_offline_harness",
+        "datetime": datetime,
+        "UTC": UTC,
+        "Any": Any,
+        "logging": logging,
+        "logger": logging.getLogger("starlink_dashboard_offline_harness"),
+        "os": os,
+    }
+    exec(compile(ast.Module(body=module_body, type_ignores=[]), str(MODULE_PATH), "exec"), namespace)
+    return namespace["StarlinkDashboard"]
 
 
 @pytest.fixture
-def dashboard(qt_application):
-    """Construct the real dashboard window against an offscreen Qt platform."""
-    module = importlib.import_module("starlink_dashboard")
-    window = module.StarlinkDashboard()
-    yield window
-    window.timer.stop()
-    window.close()
+def dashboard():
+    """Create a lightweight instance of the real dashboard data-path methods."""
+    dashboard_type = load_dashboard_class()
+    instance = dashboard_type()
+    instance.channel = None
+    instance.starlink_ip = "192.0.2.10"
+    instance.connection_start_time = None
+    instance.dish_connected = False
+    return instance
 
 
 class FakeRequest:

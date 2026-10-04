@@ -1,6 +1,3 @@
-# The offline integration tests import the dashboard with Qt running offscreen.
--r requirements.txt
-
-# Test and lint tools.
+# The offline harness executes dashboard methods without importing Qt or gRPC.
 pytest>=9.1.1
 ruff>=0.16.10

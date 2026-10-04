@@ -85,9 +85,9 @@ python starlink_dashboard.py
 
 ## Run the tests
 
-The tests include offline integration coverage. They run the dashboard with Qt in
-offscreen mode and mock the Starlink gRPC endpoint and protocol modules; they do
-not connect to a terminal.
+The tests include offline integration coverage. They execute the dashboard's
+diagnostics and connection methods in a Qt-free harness and mock the Starlink
+gRPC endpoint and protocol modules; they do not connect to a terminal.
 
 ```powershell
 python -m pip install -r requirements-dev.txt
