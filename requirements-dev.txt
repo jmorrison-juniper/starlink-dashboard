@@ -1,4 +1,6 @@
-# Test and lint tools. The tests read the dashboard source and never import it,
-# so they need no runtime dependency from requirements.txt.
-pytest>=8.4
-ruff>=0.13
+# The offline integration tests import the dashboard with Qt running offscreen.
+-r requirements.txt
+
+# Test and lint tools.
+pytest>=9.1.1
+ruff>=0.16.10
