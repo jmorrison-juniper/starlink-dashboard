@@ -1,0 +1,6 @@
+name: "Starlink Dashboard CodeQL Configuration"
+
+# The submodule holds the SpaceX enterprise-api files and the generated protocol
+# modules. This repository does not own that code, so the scan skips it.
+paths-ignore:
+  - starlink-api-reference

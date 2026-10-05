@@ -141,18 +141,30 @@ The type labels are `bug`, `enhancement`, and `documentation`, and the `in-progr
 The repository has no scope label, no `auto-merge` label, no changelog, no changelog fragment
 folder, and no pull request template.
 
-The repository has three workflows.
-`CI` in `.github/workflows/ci.yml` calls the shared `reusable-python-quality-gates.yml` workflow.
-It runs Ruff lint, Ruff format, and pytest. It also generates the protocol modules and runs offline
-UI and screenshot tests.
-`STE lint` in `.github/workflows/ste-lint.yml` grades `README.md`, `AGENTS.md`, and this file.
-`Stranded Branch Report` runs each Monday at 07:00 UTC.
-Each pull request job finishes in less than one minute.
+The repository has four workflows.
+
+| Workflow | File | Work |
+| - | - | - |
+| `CI` | `.github/workflows/ci.yml` | Runs Ruff lint, Ruff format, and pytest, generates the protocol modules, and runs the UI and capture tests |
+| `CodeQL` | `.github/workflows/codeql.yml` | Scans the Python code and uploads the alerts to code scanning |
+| `STE lint` | `.github/workflows/ste-lint.yml` | Grades `README.md`, `AGENTS.md`, and this file |
+| `Stranded Branch Report` | `.github/workflows/stranded-branch-report.yml` | Reports each branch with no pull request, each Monday at 07:00 UTC |
+
+Each workflow calls a shared workflow of `misthelper-devtools` at release v0.6.2, commit
+`da02d4c6a2163d1882f2ad25fce80b8ba38304d1`. The test `tests/unit/test_workflows.py` fails when one
+pin names a different commit. Move all the pins together in one pull request.
+
+`CodeQL` runs on each pull request, on a push to `main`, each Monday at 06:00 UTC, and on a manual
+request. It reads `.github/codeql/codeql-config.yml`, which skips the `starlink-api-reference`
+submodule. Its job check is `codeql / Analyze (python)`, and code scanning adds the `CodeQL` check.
+Do not rename `codeql.yml`, because code scanning keys the alerts on the file path and the job ID.
+Each pull request job, except the CodeQL analysis, finishes in less than one minute.
 
 Branch protection requires the `gates / *` checks, `Generate the protocol modules`, and
 `Offline UI and screenshot capture`. The ten gate jobs that `ci.yml` does not enable always report
 `skipping`, by design, and branch protection accepts them. The `ste-lint / STE compliance` check is
-not required today. The repository has no CodeQL workflow, and code scanning is not configured.
+not required today. After the first green CodeQL run on `main`, the owner adds `CodeQL` and
+`codeql / Analyze (python)` to the required checks.
 
 Dependabot updates the `pip` packages and the GitHub Actions pins each week, in one group for each
 ecosystem. A release tag has the form `YY.MM.DD.HH.MM`, for example
@@ -199,6 +211,8 @@ ecosystem. A release tag has the form `YY.MM.DD.HH.MM`, for example
 | `requirements-dev.txt` | The test and lint package floors |
 | `pyproject.toml` | The Ruff and pytest settings |
 | `.github/workflows/ci.yml` | The quality gates, the protocol module job, and the UI and capture job |
+| `.github/workflows/codeql.yml` | The CodeQL analysis of the Python code |
+| `tests/unit/test_workflows.py` | The CodeQL workflow values and the `misthelper-devtools` pins |
 
 ## External resources
 
