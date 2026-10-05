@@ -23,6 +23,8 @@ QT_QPA_PLATFORM=offscreen python -m pytest tests/ui
 ```
 
 On PowerShell, set `$env:QT_QPA_PLATFORM = "offscreen"` before the test command.
+On minimal Ubuntu systems, install Qt's system libraries with
+`sudo apt-get install libegl1 libopengl0`, even for offscreen rendering.
 Without PyQt6 or gRPC, the UI tests are skipped; this does not verify captures.
 CI installs both requirements files in a separate UI job and runs the capture
 command as well as the UI tests. The shared
