@@ -8,8 +8,8 @@
 # rules only. Grade the same files with a dictionary on your own machine too.
 #
 # The `uses:` line pins a full commit SHA of misthelper-devtools, and the
-# comment after it names the release. This repository pins the commit after v0.6.1
-# that adds the agent instruction templates (misthelper-devtools#49).
+# comment after it names the release. Each workflow of this repository pins
+# release v0.6.2, and a test in tests/unit/test_workflows.py checks the pins.
 # Re-pin the SHA and the comment together when you adopt a later release, and
 # let Dependabot move the pin with a `github-actions` entry in
 # `.github/dependabot.yml`.
