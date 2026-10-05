@@ -1,105 +1,49 @@
 # Starlink Enterprise Dashboard
 
-The Starlink Enterprise Dashboard is a PyQt6 desktop application. It shows the status of a Starlink Enterprise terminal.
+## What
 
-The dashboard reads the status from the gRPC device API of the terminal. The API listens on port 9200 of the terminal address. The default address is `192.168.100.1`.
+A PyQt6 desktop app that shows the status, alerts, and alignment of a Starlink Enterprise terminal.
 
-## Origin of the code
+These are real app captures with synthetic test data. No live terminal supplied the data.
 
-This code came from the [MistHelper](https://github.com/jmorrison-juniper/MistHelper) repository on 2026-09-25. The move kept the commit history of the dashboard files. MistHelper issue [#3403](https://github.com/jmorrison-juniper/MistHelper/issues/3403) records the move.
+Ready to connect (Dark):
 
-The commit messages and the code comments use numbers such as `#1834` and `alert 190`. These numbers identify MistHelper issues, MistHelper pull requests, and MistHelper code scanning alerts. They do not identify items in this repository.
+![Dashboard ready to connect, with no terminal data](docs/screenshots/disconnected-dark.png)
 
-## Requirements
+Active service (Light):
 
-1. Python 3.13 or later.
-2. A network path from your computer to the Starlink terminal.
-3. The protocol file of the SpaceX `enterprise-api` repository. The `starlink-api-reference` submodule supplies this file.
+![Dashboard with synthetic active service and alignment values](docs/screenshots/active-light.png)
 
-## Set up the dashboard
+Obstruction alert (TRON):
 
-1. Clone the repository and its submodule.
+![Dashboard with a synthetic obstruction alert and alignment warning](docs/screenshots/alert-tron.png)
 
-   ```powershell
-   git clone --recurse-submodules https://github.com/jmorrison-juniper/starlink-dashboard.git
-   cd starlink-dashboard
-   ```
+## How
 
-   If you cloned the repository without the submodule, run `git submodule update --init`.
+Use Python 3.13 or later. [Install the dependencies and protocol modules](docs/setup.md), then run:
 
-2. Create a virtual environment, and then activate it.
-
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1
-   ```
-
-   On Linux or macOS, run `source .venv/bin/activate` to activate the environment.
-
-3. Install the dependencies.
-
-   ```powershell
-   python -m pip install -r requirements.txt
-   ```
-
-4. Generate the Python modules from the protocol file.
-
-   ```powershell
-   cd starlink-api-reference/device-api
-   python -m grpc_tools.protoc -I . --python_out=. --pyi_out=. --grpc_python_out=. device.proto
-   cd ../..
-   ```
-
-   This step writes `device_pb2.py` and `device_pb2_grpc.py` into the submodule folder. The submodule ignores these generated files, so the submodule stays clean. If you do not do this step, the dashboard starts, but it cannot connect to the terminal.
-
-Caution: If PyQt6 or the gRPC packages are not installed, the dashboard installs them when it starts. It uses `uv` if `uv` is available, and it uses `pip` if `uv` is not available. After the dashboard installs PyQt6, it starts again. To prevent the automatic installation, do step 3 before you start the dashboard.
-
-## Start the dashboard
-
-```powershell
+```console
 python starlink_dashboard.py
 ```
 
-1. Type the address of the terminal in the `Starlink IP:` field.
-2. Click `Connect`.
-3. To read the status again at once, click `Refresh Now`.
+Enter the terminal address and click **Connect**. See the [operator guide](docs/operation.md) for controls and GPS privacy.
 
-To show the debug log in the terminal window, add the `--debug` option.
+## Where
 
-```powershell
-python starlink_dashboard.py --debug
-```
+The app runs on your desktop. It reads the terminal's gRPC device API at port `9200`; the default address is `192.168.100.1`.
 
-## GPS precision
+See the [setup guide](docs/setup.md), [operator guide](docs/operation.md), and [development guide](docs/development.md).
 
-The dashboard rounds each GPS coordinate to three decimal places. At this precision, a coordinate identifies a site to approximately 100 meters.
+## When
 
-Warning: An exact coordinate shows the physical position of the terminal. Do not share a log or a screenshot that shows an exact coordinate.
+Use the app when you need to check terminal health. While connected, it reads status every five seconds. Click **Refresh Now** for an immediate update.
 
-To show the exact coordinates, set `STARLINK_DASHBOARD_EXACT_GPS` to `1`, `true`, `yes`, or `on` before you start the dashboard.
+## Why
 
-```powershell
-$env:STARLINK_DASHBOARD_EXACT_GPS = "1"
-python starlink_dashboard.py
-```
+The dashboard puts service status, self-test results, obstructions, and dish alignment in one view. It helps operators check WAN connectivity without reading raw protocol responses.
 
-## Run the tests
+## Who
 
-The tests include offline integration coverage. They execute the dashboard's
-diagnostics and connection methods in a Qt-free harness and mock the Starlink
-gRPC endpoint and protocol modules; they do not connect to a terminal.
+For NOC engineers and Starlink terminal operators. The code came from MistHelper; see [project origin and license](docs/project.md).
 
-```powershell
-python -m pip install -r requirements-dev.txt
-python -m ruff check .
-python -m ruff format --check .
-python -m pytest
-```
-
-CI runs the same three checks with the shared quality gate workflow of [misthelper-devtools](https://github.com/jmorrison-juniper/misthelper-devtools). Each check is a separate job, for example `gates / Ruff (lint)`.
-
-## License
-
-This repository uses the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license. See [LICENSE](LICENSE).
-
-The `starlink-api-reference` submodule is a pointer to the SpaceX `enterprise-api` repository. This repository holds no copy of that code. The SpaceX repository states no license, so read its terms before you copy its files.
+Report problems in [GitHub issues](https://github.com/jmorrison-juniper/starlink-dashboard/issues). See [development and safe screenshot capture](docs/development.md) before sharing app images.
